@@ -2,7 +2,8 @@ import sys
 import unittest
 
 from htmlnode import HTMLNode, ParentNode, LeafNode
-
+from textnode import TextNode
+from main import *
 
 class TestHTMLNode(unittest.TestCase):
     def test_eq(self):
@@ -70,6 +71,35 @@ class TestHTMLNode(unittest.TestCase):
         #print(node.to_html())
         self.assertEqual(node.to_html(), "<div><p><b>Bold text</b>Normal text<i>italic text</i>Normal text</p><p>Second P</p></div>")
 
+    def test_text_normal(self):
+        text = TextNode("Normal", TextType.TEXT, None)
+        node = text.text_node_to_html_node()
+        self.assertEqual(node.to_html(), "Normal")
+
+    def test_text_bold(self):
+        text = TextNode("Bold text", TextType.BOLD, None)
+        node = text.text_node_to_html_node()
+        self.assertEqual(node.to_html(), "<b>Bold text</b>")
+
+    def test_text_ita(self):
+        text = TextNode("text", TextType.ITALIC, None)
+        node = text.text_node_to_html_node()
+        self.assertEqual(node.to_html(), "<i>text</i>")
+
+    def test_text_code(self):
+        text = TextNode("text", TextType.CODE, None)
+        node = text.text_node_to_html_node()
+        self.assertEqual(node.to_html(), "<code>text</code>")
+
+    def test_text_image(self):
+        text = TextNode("text", TextType.IMAGE, "http://mylink.com")
+        node = text.text_node_to_html_node()
+        self.assertEqual(node.to_html(), '<img alt="text" src="http://mylink.com"></img>')
+        
+    def test_text_link(self):
+        text = TextNode("text", TextType.LINK, "http://mylink.com")
+        node = text.text_node_to_html_node()
+        self.assertEqual(node.to_html(), '<a href="http://mylink.com">text</a>')
 
 
 if __name__ == "__main__":
