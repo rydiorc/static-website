@@ -1,6 +1,15 @@
 from htmlnode import *
 from textnode import *
+
 import re
+
+class BlockType(Enum):
+    PARAGRAPH = "PARAGRAPH"
+    HEADING = "HEADING"
+    QUOTE = "QUOTE"
+    CODE = "CODE"
+    UNORDERED_LIST = "UNORDERED_LIST"
+    ORDERED_LIST = "ORDERED_LIST"
 
 def split_nodes_delimiter(old_nodes, delimiter, text_type):
     new = []
@@ -81,3 +90,90 @@ def text_to_textnodes(text):
     nodes = split_nodes_link(nodes)
     return nodes
     
+def markdown_to_blocks(markdown):
+    blocks = markdown.split("\n\n")
+    blocks = list(filter(lambda s: s != "", list(map(lambda s: s.strip(), blocks))))
+    return blocks
+
+def block_to_block_type(block):
+    matches = re.findall(r"(#{1,6}) \w+", block)
+    if len(matches) > 0:
+        return BlockType.HEADING
+    if block.startswith("```") and block.endswith("```"):
+        return BlockType.CODE
+    if block.find("\n"):
+        lines = block.split("\n")
+    else:
+        lines = block
+    if len(list(filter(lambda a: a.startswith(">"), lines))) == len(lines):
+        return BlockType.QUOTE
+    if len(list(filter(lambda a: a.startswith("- "), lines))) == len(lines):
+        return BlockType.UNORDERED_LIST
+    is_list = True
+    if len(lines) > 1:
+        for i in range(len(lines)):
+            if not lines[i].startswith(f"{i+1}. "):
+                is_list = False
+    else:
+        if not lines[0].startswith("1. "):
+            is_list = False
+    if is_list:
+        return BlockType.ORDERED_LIST
+    return BlockType.PARAGRAPH
+
+
+def block_to_node(block, blocktype):
+    tag = None
+    use_func = True
+    match blocktype:
+        case BlockType.PARAGRAPH:
+            tag = "p"
+            text = block.replace("\n", " ")
+        case BlockType.CODE:
+            tag = "pre"            
+            lines = block.replace("```", "").split("\n")
+            lines = list(filter(lambda a: not a.isspace() and a != "", lines))
+            
+            text = ""
+            for l in lines:
+                text += l.strip() + "\n"            
+            node = TextNode(text, TextType.CODE)
+            children = [node.text_node_to_html_node()]
+            use_func = False
+        case BlockType.UNORDERED_LIST:
+            tag = "ul"
+            items = block.replace("- ", "").split("\n")
+            children = []
+            for i in items:
+                node = LeafNode("li", i)
+                children.append(node)
+            use_func = False
+        case BlockType.ORDERED_LIST:
+            tag = "ol"
+            items = block.split("\n")
+            children = []
+            for i in items:
+                node = LeafNode("li", i[3:])
+                children.append(node)
+            use_func = False
+        case BlockType.QUOTE:
+            tag = "blockquote"
+            text = block.replace("> ", "").replace("\n", " ")
+        case BlockType.HEADING:
+            size = block.count("#")
+            tag = f"h{size}"
+            text = block.replace("#", "").lstrip()
+    if use_func:
+        children = text_to_textnodes(text)
+        children = list(map(lambda a: a.text_node_to_html_node(), children))
+    parent = ParentNode(tag, children)
+    return parent
+
+def markdown_to_html_node(markdown):
+    blocks = markdown_to_blocks(markdown)
+    nodes = []
+    for b in blocks:
+        btype = block_to_block_type(b)
+        nodes.append(block_to_node(b, btype))
+    html = ParentNode("div", nodes)
+    return html
