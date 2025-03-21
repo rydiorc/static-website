@@ -1,4 +1,5 @@
 import unittest
+import sys
 
 from textnode import TextNode, TextType
 from func import *
@@ -154,6 +155,40 @@ the **same** even with inline stuff
             html,
             "<div><h1>heading 1</h1><h3>heading 3</h3><blockquote>quote is something like this</blockquote></div>",
         )
+    
+    def test_extract_title(self):
+        md = """
+# heading 1
+
+### heading 3
+
+> quote
+> is something
+> like this
+    """
+
+        h1 = extract_title(md)
+        self.assertEqual(
+            h1,
+            "heading 1",
+        )
+    
+    def test_extract_title_except(self):
+        md = """
+## heading 1
+
+### heading 3
+
+> quote
+> is something
+> like this
+    """
+
+        
+        try:
+            h1 = extract_title(md)
+        except:
+            self.assertEqual(sys.exception(), Exception)
 
 if __name__ == "__main__":
     unittest.main()

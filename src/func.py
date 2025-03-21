@@ -1,6 +1,6 @@
 from htmlnode import *
 from textnode import *
-
+import os
 import re
 
 class BlockType(Enum):
@@ -10,6 +10,12 @@ class BlockType(Enum):
     CODE = "CODE"
     UNORDERED_LIST = "UNORDERED_LIST"
     ORDERED_LIST = "ORDERED_LIST"
+
+def extract_title(markdown):
+    matches = re.findall(r"#{1}\s*(.*)", markdown)
+    if len(matches) > 0:
+        return matches[0]
+    raise Exception("No title found")
 
 def split_nodes_delimiter(old_nodes, delimiter, text_type):
     new = []
@@ -145,7 +151,9 @@ def block_to_node(block, blocktype):
             items = block.replace("- ", "").split("\n")
             children = []
             for i in items:
-                node = LeafNode("li", i)
+                textnodes = text_to_textnodes(i)
+                htmlnodes = list(map(lambda a: a.text_node_to_html_node(), textnodes))
+                node = ParentNode("li", htmlnodes)
                 children.append(node)
             use_func = False
         case BlockType.ORDERED_LIST:
@@ -153,7 +161,10 @@ def block_to_node(block, blocktype):
             items = block.split("\n")
             children = []
             for i in items:
-                node = LeafNode("li", i[3:])
+                textnodes = text_to_textnodes(i[3:])
+                htmlnodes = list(map(lambda a: a.text_node_to_html_node(), textnodes))
+                node = ParentNode("li", htmlnodes)
+                #node = LeafNode("li", i[3:])
                 children.append(node)
             use_func = False
         case BlockType.QUOTE:
