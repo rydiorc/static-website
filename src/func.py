@@ -28,12 +28,23 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
         if node.text.count(delimiter) < 2:
             raise Exception("that's invalid Markdown syntax.")
         
-        split = node.text.split(delimiter, maxsplit=2)        
-        split[0] = TextNode(split[0], TextType.TEXT, None)
-        split[1] = TextNode(split[1], text_type, None)
-        split[2] = TextNode(split[2], TextType.TEXT, None)
-        new.extend(split)
+        text = node.text
+        #new_node = []
+        #print(text)
+        #print(delimiter)
+        #print(text.find(delimiter))
+        while text.find(delimiter) > -1:
+            split = text.split(delimiter, maxsplit=2)
+           #print(f"Split size: {len(split)}")
 
+            new.append(TextNode(split[0], TextType.TEXT, None))
+            new.append(TextNode(split[1], text_type, None))
+            #split[2] = TextNode(split[2], TextType.TEXT, None)
+            text = split[2]
+            if text.find(delimiter) < 0:
+                new.append(TextNode(text, TextType.TEXT, None))
+                
+        #new.extend(new_node)
     return new
 
 def extract_markdown_images(text):
@@ -89,9 +100,13 @@ def split_nodes_link(old_nodes):
 
 def text_to_textnodes(text):
     nodes = [TextNode(text, TextType.TEXT)]
+    #print(nodes)
     nodes = split_nodes_delimiter(nodes, "**", TextType.BOLD)    
+    #print(nodes)
     nodes = split_nodes_delimiter(nodes, "_", TextType.ITALIC)
+    #print(nodes)
     nodes = split_nodes_delimiter(nodes, "`", TextType.CODE)
+    #print(nodes)
     nodes = split_nodes_image(nodes)
     nodes = split_nodes_link(nodes)
     return nodes

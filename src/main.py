@@ -8,9 +8,25 @@ import re
 def main():
     static = "static"
     public = "public"
+    content = "content"
     if os.path.exists(static):
         copy_dir(static, public, True)
-    generate_page(os.path.join("content", "index.md"), "template.html", os.path.join("public", "index.html"))
+    #generate_page(os.path.join("content", "index.md"), "template.html", os.path.join("public", "index.html"))
+    generate_pages_recursive(content, "template.html", public)
+
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+    if os.path.exists(dir_path_content):
+        files = os.listdir(dir_path_content)
+        for f in files:
+            src = os.path.join(dir_path_content, f)
+            dst = os.path.join(dest_dir_path, f)
+            if os.path.isfile(src):
+                if src.endswith(".md"):
+                    dst = dst.replace(".md", ".html")
+                    generate_page(src, template_path, dst)
+            if os.path.isdir(src):
+                generate_pages_recursive(src, template_path, dst)
+    
 
 def generate_page(from_path, template_path, dest_path):
     print(f"Generating page from {from_path} to {dest_path} using {template_path}")
