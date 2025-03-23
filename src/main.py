@@ -46,8 +46,8 @@ def generate_page(from_path, template_path, dest_path, basepath):
     #print(title)
     template = template.replace("{{ Title }}", title)
     final_html = template.replace("{{ Content }}", html)
-    final_html = final_html.replace('href="/', "href=\"{BASEPATH}")
-    final_html = final_html.replace('src="/', "src=\"{BASEPATH}")
+    final_html = final_html.replace('href="/', f"href=\"{basepath}")
+    final_html = final_html.replace('src="/', f"src=\"{basepath}")
     #print(final_html)
     # Get the directory portion of the path
     dest_dir = os.path.dirname(dest_path)
