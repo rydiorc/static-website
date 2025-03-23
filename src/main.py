@@ -8,8 +8,8 @@ import sys
 
 def main():
     basepath = "/"
-    if sys.argv[0] != "":
-        basepath = sys.argv[0]
+    if len(sys.argv) > 1:
+        basepath = sys.argv[1]
     static = "static"
     public = "docs"
     content = "content"
