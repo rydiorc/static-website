@@ -4,17 +4,21 @@ from func import *
 import os
 import shutil
 import re
+import sys
 
 def main():
+    basepath = "/"
+    if sys.argv[0] != "":
+        basepath = sys.argv[0]
     static = "static"
-    public = "public"
+    public = "docs"
     content = "content"
     if os.path.exists(static):
         copy_dir(static, public, True)
-    #generate_page(os.path.join("content", "index.md"), "template.html", os.path.join("public", "index.html"))
-    generate_pages_recursive(content, "template.html", public)
+    #generate_page(os.path.join("content", "index.md"), "template.html", os.path.join("docs", "index.html"))
+    generate_pages_recursive(content, "template.html", public, basepath)
 
-def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path, basepath):
     if os.path.exists(dir_path_content):
         files = os.listdir(dir_path_content)
         for f in files:
@@ -23,12 +27,12 @@ def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
             if os.path.isfile(src):
                 if src.endswith(".md"):
                     dst = dst.replace(".md", ".html")
-                    generate_page(src, template_path, dst)
+                    generate_page(src, template_path, dst, basepath)
             if os.path.isdir(src):
-                generate_pages_recursive(src, template_path, dst)
+                generate_pages_recursive(src, template_path, dst, basepath)
     
 
-def generate_page(from_path, template_path, dest_path):
+def generate_page(from_path, template_path, dest_path, basepath):
     print(f"Generating page from {from_path} to {dest_path} using {template_path}")
     md = None
     template = None
@@ -42,6 +46,8 @@ def generate_page(from_path, template_path, dest_path):
     #print(title)
     template = template.replace("{{ Title }}", title)
     final_html = template.replace("{{ Content }}", html)
+    final_html = final_html.replace('href="/', "href=\"{BASEPATH}")
+    final_html = final_html.replace('src="/', "src=\"{BASEPATH}")
     #print(final_html)
     # Get the directory portion of the path
     dest_dir = os.path.dirname(dest_path)
